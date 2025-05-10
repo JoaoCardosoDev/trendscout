@@ -19,6 +19,7 @@ pydantic = "*"
 python-dotenv = "*"
 alembic = "*"
 httpx = "*"
+python-json-logger = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
