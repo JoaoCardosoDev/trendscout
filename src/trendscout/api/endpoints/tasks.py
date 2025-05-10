@@ -12,7 +12,80 @@ from .auth import get_current_user
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
-@router.post("", response_model=schemas.TaskInDB)
+@router.post("", response_model=schemas.TaskInDB,
+    summary="Create new agent task",
+    description="""
+    Create a new task to be executed by an AI agent.
+    
+    Available agent types:
+    * `trend_analyzer`: Analyzes social media platforms to identify trending topics
+      ```json
+      {
+        "agent_type": "trend_analyzer",
+        "input_data": {
+          "platforms": ["twitter", "reddit"],
+          "categories": ["technology", "gaming"],
+          "time_range": "24h"
+        }
+      }
+      ```
+    
+    * `content_generator`: Creates engaging post ideas based on trends
+      ```json
+      {
+        "agent_type": "content_generator",
+        "input_data": {
+          "topic": "AI technology trends",
+          "tone": "professional",
+          "target_audience": "tech professionals",
+          "content_type": "blog_post"
+        }
+      }
+      ```
+    
+    * `scheduler`: Determines optimal publishing times
+      ```json
+      {
+        "agent_type": "scheduler",
+        "input_data": {
+          "content_type": "social_media_post",
+          "target_audience": "tech professionals",
+          "timezone": "UTC",
+          "days_to_analyze": 7
+        }
+      }
+      ```
+    
+    Tasks are processed asynchronously. Use the returned task_id to check the status and retrieve results.
+    """,
+    responses={
+        201: {
+            "description": "Task created successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 1,
+                        "task_id": "550e8400-e29b-41d4-a716-446655440000",
+                        "agent_type": "trend_analyzer",
+                        "status": "pending",
+                        "input_data": {
+                            "platforms": ["twitter", "reddit"],
+                            "categories": ["technology"],
+                            "time_range": "24h"
+                        },
+                        "user_id": 1,
+                        "created_at": "2025-05-10T21:45:00",
+                        "updated_at": None,
+                        "completed_at": None,
+                        "execution_time": None,
+                        "result": None,
+                        "error": None
+                    }
+                }
+            }
+        }
+    }
+)
 async def create_task(
     *,
     db: Session = Depends(get_db),
@@ -46,7 +119,89 @@ async def create_task(
     
     return db_task
 
-@router.get("/{task_id}", response_model=schemas.TaskInDB)
+@router.get("/{task_id}", response_model=schemas.TaskInDB,
+    summary="Get task by ID",
+    description="""
+    Retrieve a specific task by its UUID.
+    
+    The task status can be one of:
+    * `pending`: Task is waiting to be processed
+    * `running`: Task is currently being processed
+    * `completed`: Task has finished successfully
+    * `failed`: Task encountered an error
+    
+    When the task is completed, the result field will contain the agent's output:
+    ```json
+    {
+      "status": "completed",
+      "result": {
+        "trends": [
+          {
+            "topic": "AI in Healthcare",
+            "score": 0.85,
+            "sources": ["twitter", "reddit"],
+            "sentiment": "positive"
+          }
+        ],
+        "analysis": "Healthcare AI is trending due to..."
+      }
+    }
+    ```
+    """,
+    responses={
+        200: {
+            "description": "Task information",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 1,
+                        "task_id": "550e8400-e29b-41d4-a716-446655440000",
+                        "agent_type": "trend_analyzer",
+                        "status": "completed",
+                        "input_data": {
+                            "platforms": ["twitter", "reddit"],
+                            "categories": ["technology"],
+                            "time_range": "24h"
+                        },
+                        "user_id": 1,
+                        "created_at": "2025-05-10T21:45:00",
+                        "updated_at": "2025-05-10T21:46:00",
+                        "completed_at": "2025-05-10T21:46:00",
+                        "execution_time": 60,
+                        "result": {
+                            "trends": [
+                                {
+                                    "topic": "AI in Healthcare",
+                                    "score": 0.85,
+                                    "sources": ["twitter", "reddit"],
+                                    "sentiment": "positive"
+                                }
+                            ],
+                            "analysis": "Healthcare AI is trending due to..."
+                        },
+                        "error": None
+                    }
+                }
+            }
+        },
+        403: {
+            "description": "Not enough permissions",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Not enough permissions"}
+                }
+            }
+        },
+        404: {
+            "description": "Task not found",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Task not found"}
+                }
+            }
+        }
+    }
+)
 async def read_task(
     task_id: str,
     db: Session = Depends(get_db),
@@ -78,7 +233,63 @@ async def read_task(
         
     return task
 
-@router.get("", response_model=schemas.TaskList)
+@router.get("", response_model=schemas.TaskList,
+    summary="List tasks",
+    description="""
+    List all tasks with support for filtering and pagination.
+    
+    Parameters:
+    - skip: Number of tasks to skip (for pagination)
+    - limit: Maximum number of tasks to return
+    - status: Filter by task status (pending, running, completed, failed)
+    - agent_type: Filter by agent type (trend_analyzer, content_generator, scheduler)
+    
+    Note: Regular users can only see their own tasks.
+    Superusers can see all tasks in the system.
+    """,
+    responses={
+        200: {
+            "description": "List of tasks",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "tasks": [
+                            {
+                                "id": 1,
+                                "task_id": "550e8400-e29b-41d4-a716-446655440000",
+                                "agent_type": "trend_analyzer",
+                                "status": "completed",
+                                "input_data": {
+                                    "platforms": ["twitter", "reddit"],
+                                    "categories": ["technology"],
+                                    "time_range": "24h"
+                                },
+                                "user_id": 1,
+                                "created_at": "2025-05-10T21:45:00",
+                                "updated_at": "2025-05-10T21:46:00",
+                                "completed_at": "2025-05-10T21:46:00",
+                                "execution_time": 60,
+                                "result": {
+                                    "trends": [
+                                        {
+                                            "topic": "AI in Healthcare",
+                                            "score": 0.85,
+                                            "sources": ["twitter", "reddit"],
+                                            "sentiment": "positive"
+                                        }
+                                    ],
+                                    "analysis": "Healthcare AI is trending due to..."
+                                },
+                                "error": None
+                            }
+                        ],
+                        "total": 1
+                    }
+                }
+            }
+        }
+    }
+)
 async def list_tasks(
     db: Session = Depends(get_db),
     skip: int = 0,
@@ -117,7 +328,41 @@ async def list_tasks(
     
     return {"tasks": tasks, "total": total}
 
-@router.delete("/{task_id}", response_model=schemas.Message)
+@router.delete("/{task_id}", response_model=schemas.Message,
+    summary="Delete task",
+    description="""
+    Delete a task by its UUID.
+    
+    Note: Regular users can only delete their own tasks.
+    Superusers can delete any task.
+    """,
+    responses={
+        200: {
+            "description": "Task deleted successfully",
+            "content": {
+                "application/json": {
+                    "example": {"message": "Task deleted successfully"}
+                }
+            }
+        },
+        403: {
+            "description": "Not enough permissions",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Not enough permissions"}
+                }
+            }
+        },
+        404: {
+            "description": "Task not found",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Task not found"}
+                }
+            }
+        }
+    }
+)
 async def delete_task(
     task_id: str,
     db: Session = Depends(get_db),
