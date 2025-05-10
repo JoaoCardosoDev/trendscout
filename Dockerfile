@@ -25,7 +25,7 @@ COPY src/ ./src/
 RUN poetry config virtualenvs.create false
 
 # Install dependencies
-RUN poetry install --no-dev --no-interaction
+RUN poetry install --only main --no-interaction --no-root
 
 # Run the application
 CMD ["poetry", "run", "uvicorn", "src.trendscout.main:app", "--host", "0.0.0.0", "--port", "8000"]
