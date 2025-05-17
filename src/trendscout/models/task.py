@@ -6,19 +6,21 @@ from ..db.base_class import Base
 
 class AgentTask(Base):
     """Model for tracking agent tasks and their results."""
-    
-    task_id = Column(String, unique=True, index=True, nullable=False)
-    agent_type = Column(String, nullable=False)  # trend_analyzer, content_generator, scheduler
-    status = Column(String, nullable=False)  # pending, running, completed, failed
+    __tablename__ = "agent_tasks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    task_id = Column(String(100), unique=True, index=True, nullable=False)
+    agent_type = Column(String(50), nullable=False)  # trend_analyzer, content_generator, scheduler
+    status = Column(String(20), nullable=False)  # pending, running, completed, failed
     input_data = Column(JSON)
     result = Column(JSON, nullable=True)
-    error = Column(String, nullable=True)
-    
-    user_id = Column(Integer, ForeignKey("user.id"))
-    user = relationship("User", backref="tasks")
-    
+    error = Column(String(500), nullable=True)
+
+    user_id = Column(Integer, ForeignKey("users.id"))
+    user = relationship("User", back_populates="tasks")
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     completed_at = Column(DateTime(timezone=True), nullable=True)
-    
+
     execution_time = Column(Integer, nullable=True)  # in seconds
