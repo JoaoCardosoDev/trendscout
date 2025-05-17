@@ -20,6 +20,9 @@ python-dotenv = "*"
 alembic = "*"
 httpx = "*"
 python-json-logger = "*"
+pydantic-settings = "*"
+tenacity = "*"
+email-validator = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
