@@ -21,6 +21,7 @@ RUN pip install poetry
 # Copy project files
 COPY pyproject.toml poetry.lock* ./
 COPY src/ ./src/
+COPY tests/ ./tests/
 
 # Make wait-for-services script executable
 RUN chmod +x /app/src/scripts/wait-for-services.sh
@@ -29,7 +30,7 @@ RUN chmod +x /app/src/scripts/wait-for-services.sh
 RUN poetry config virtualenvs.create false
 
 # Install dependencies
-RUN poetry install --only main --no-interaction --no-root
+RUN poetry install --no-interaction --no-root
 
 # Run the application with wait-for-services script
-CMD ["/app/src/scripts/wait-for-services.sh", "poetry", "run", "uvicorn", "src.trendscout.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["/app/src/scripts/wait-for-services.sh", "poetry", "run", "uvicorn", "src.trendscout.main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "debug"]
