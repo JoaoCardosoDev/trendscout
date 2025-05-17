@@ -4,8 +4,9 @@ from sqlalchemy.orm import Session
 
 from .core.config import get_settings
 from .core.logging import RequestContextMiddleware, log_request, log_error, logger
+from .core.ollama import ollama_service
 from .db.session import get_db
-from .db.init_db import init_db
+from .db.init_db import ensure_database_state
 from .api import api_router
 
 settings = get_settings()
@@ -16,7 +17,11 @@ tags_metadata = [
         "description": "Authentication operations. Use these endpoints to obtain and manage access tokens.",
         "externalDocs": {
             "description": "Auth Flow Documentation",
-            "url": "/docs#section/Authentication",
+            # Pydantic's AnyUrl type expects a scheme for absolute URLs or a valid relative reference.
+            # The error "relative URL without a base" indicates it's not correctly parsing the previous attempts.
+            # Using a fully qualified placeholder URL is the safest way to pass Pydantic validation.
+            # The actual link behavior within Swagger UI for relative paths might still work as intended if the base is correctly inferred by the UI.
+            "url": "http://localhost:8000/docs#section/Authentication",
         },
     },
     {
@@ -97,10 +102,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize database on startup
+# Initialize database and verify system state on startup
 @app.on_event("startup")
 async def startup_event():
-    init_db()
+    try:
+        # Initialize database and ensure superuser exists
+        ensure_database_state()
+        
+        # Check Ollama service health
+        ollama = ollama_service
+        if not await ollama.check_health():
+            logger.warning("Ollama service health check failed")
+        else:
+            logger.info("Ollama service is healthy")
+            
+        logger.info("Application startup completed successfully")
+    except Exception as e:
+        logger.error(f"Error during startup: {str(e)}")
+        raise
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
