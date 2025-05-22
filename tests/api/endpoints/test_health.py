@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from trendscout.core.config import settings
 
+
 def test_health_check(client: TestClient) -> None:
     """
     Test the health check endpoint.

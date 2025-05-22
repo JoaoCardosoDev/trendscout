@@ -2,6 +2,7 @@
 Logging configuration for the Trendscout application.
 Provides structured logging with request/response tracking and performance monitoring.
 """
+
 import json
 import logging
 import sys
@@ -16,7 +17,9 @@ from pythonjsonlogger import jsonlogger
 
 # Context variables for request tracking
 request_id_ctx_var: ContextVar[str] = ContextVar("request_id", default="")
-current_user_ctx_var: ContextVar[Optional[str]] = ContextVar("current_user", default=None)
+current_user_ctx_var: ContextVar[Optional[str]] = ContextVar(
+    "current_user", default=None
+)
 
 # Configure the JSON logger
 logger = logging.getLogger("trendscout")
@@ -41,10 +44,10 @@ class RequestContextMiddleware:
 
         request_id = str(uuid4())
         request_id_ctx_var.set(request_id)
-        
+
         # Wrap the send function to capture response
         start_time = time.time()
-        
+
         async def wrapped_send(message):
             if message["type"] == "http.response.start":
                 duration = time.time() - start_time
@@ -95,14 +98,16 @@ def log_error(error: Exception, request: Optional[Request] = None) -> None:
         "error_type": type(error).__name__,
         "error_message": str(error),
     }
-    
+
     if request:
-        error_details.update({
-            "method": request.method,
-            "url": str(request.url),
-            "client_host": request.client.host if request.client else None,
-        })
-    
+        error_details.update(
+            {
+                "method": request.method,
+                "url": str(request.url),
+                "client_host": request.client.host if request.client else None,
+            }
+        )
+
     logger.error("Error occurred", extra=error_details, exc_info=True)
 
 

@@ -1,4 +1,5 @@
 """Tests for the logging system."""
+
 import json
 import logging
 from unittest.mock import MagicMock, patch
@@ -21,15 +22,19 @@ from trendscout.core.logging import (
 app = FastAPI()
 app.add_middleware(RequestContextMiddleware)
 
+
 @app.get("/test")
 async def test_endpoint():
     return {"message": "test"}
+
 
 @app.get("/error")
 async def error_endpoint():
     raise ValueError("Test error")
 
+
 client = TestClient(app)
+
 
 @pytest.fixture
 def mock_logger():
@@ -37,14 +42,15 @@ def mock_logger():
     with patch("trendscout.core.logging.logger") as mock:
         yield mock
 
+
 def test_request_context_middleware(mock_logger):
     """Test that RequestContextMiddleware adds request_id and logs requests."""
     response = client.get("/test")
     assert response.status_code == 200
-    
+
     # Check that request_id was set
     assert request_id_ctx_var.get() != ""
-    
+
     # Verify logging calls
     mock_logger.info.assert_any_call(
         "Request completed",
@@ -54,6 +60,7 @@ def test_request_context_middleware(mock_logger):
             "status_code": 200,
         },
     )
+
 
 def test_log_request(mock_logger):
     """Test request logging."""
@@ -75,6 +82,7 @@ def test_log_request(mock_logger):
             "user_agent": "test-agent",
         },
     )
+
 
 def test_log_error_with_request(mock_logger):
     """Test error logging with request context."""
@@ -98,6 +106,7 @@ def test_log_error_with_request(mock_logger):
         },
         exc_info=True,
     )
+
 
 def test_log_agent_task(mock_logger):
     """Test agent task logging."""
@@ -128,6 +137,7 @@ def test_log_agent_task(mock_logger):
     # Verify timestamp is present
     assert "timestamp" in extra
 
+
 def test_log_performance_metric(mock_logger):
     """Test performance metric logging."""
     tags = {"endpoint": "/test", "method": "GET"}
@@ -151,6 +161,7 @@ def test_log_performance_metric(mock_logger):
     assert extra["unit"] == "ms"
     assert json.loads(extra["tags"]) == tags
     assert "timestamp" in extra
+
 
 def test_error_endpoint_logging(mock_logger):
     """Test that error endpoint properly logs errors."""

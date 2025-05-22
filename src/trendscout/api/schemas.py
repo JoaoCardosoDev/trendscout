@@ -2,6 +2,7 @@ from typing import Optional, Any, Dict, List
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 
+
 # Base User Schemas
 class UserBase(BaseModel):
     email: EmailStr
@@ -9,13 +10,16 @@ class UserBase(BaseModel):
     is_active: bool = True
     is_superuser: bool = False
 
+
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8)
+
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     full_name: Optional[str] = None
     password: Optional[str] = Field(None, min_length=8)
+
 
 class UserInDB(UserBase):
     id: int
@@ -25,30 +29,39 @@ class UserInDB(UserBase):
     class Config:
         from_attributes = True
 
+
 # Auth Schemas
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
+
 class TokenData(BaseModel):
     sub: Optional[str] = None
+
 
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
+
 # Task Schemas
 class TaskBase(BaseModel):
-    agent_type: str = Field(..., pattern="^(trend_analyzer|content_generator|scheduler|trend_to_post_crew)$")
+    agent_type: str = Field(
+        ..., pattern="^(trend_analyzer|content_generator|scheduler|trend_to_post_crew)$"
+    )
     input_data: Dict[str, Any]
+
 
 class TaskCreate(TaskBase):
     pass
+
 
 class TaskUpdate(BaseModel):
     status: Optional[str] = Field(None, pattern="^(pending|running|completed|failed)$")
     result: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
+
 
 class TaskInDB(TaskBase):
     id: int
@@ -60,19 +73,22 @@ class TaskInDB(TaskBase):
     completed_at: Optional[datetime] = None
     execution_time: Optional[int] = None
     result: Optional[Dict[str, Any]] = None
-    intermediate_steps: Optional[List[Dict[str, Any]]] = None # Add new field
+    intermediate_steps: Optional[List[Dict[str, Any]]] = None  # Add new field
     error: Optional[str] = None
 
     class Config:
         from_attributes = True
 
+
 # Response Schemas
 class Message(BaseModel):
     message: str
 
+
 class TaskList(BaseModel):
     tasks: List[TaskInDB]
     total: int
+
 
 class UserList(BaseModel):
     users: List[UserInDB]

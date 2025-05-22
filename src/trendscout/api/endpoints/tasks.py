@@ -12,7 +12,10 @@ from .auth import get_current_user
 
 router = APIRouter(tags=["tasks"])
 
-@router.post("/tasks/", response_model=schemas.TaskInDB,
+
+@router.post(
+    "/tasks/",
+    response_model=schemas.TaskInDB,
     summary="Create new agent task",
     description="""
     Create a new task to be executed by an AI agent.
@@ -73,7 +76,7 @@ router = APIRouter(tags=["tasks"])
                         "input_data": {
                             "platforms": ["twitter", "reddit"],
                             "categories": ["technology"],
-                            "time_range": "24h"
+                            "time_range": "24h",
                         },
                         "user_id": 1,
                         "created_at": "2025-05-10T21:45:00",
@@ -81,12 +84,12 @@ router = APIRouter(tags=["tasks"])
                         "completed_at": None,
                         "execution_time": None,
                         "result": None,
-                        "error": None
+                        "error": None,
                     }
                 }
-            }
+            },
         }
-    }
+    },
 )
 async def create_task(
     *,
@@ -102,12 +105,12 @@ async def create_task(
         agent_type=task_in.agent_type,
         status="pending",
         input_data=task_in.input_data,
-        user_id=current_user.id
+        user_id=current_user.id,
     )
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
-    
+
     # Add task to queue
     queue_manager.enqueue_task(
         task_in.agent_type,
@@ -115,13 +118,16 @@ async def create_task(
             "task_id": task_id,
             "agent_type": task_in.agent_type,
             "input_data": task_in.input_data,
-            "user_id": current_user.id
-        }
+            "user_id": current_user.id,
+        },
     )
-    
+
     return db_task
 
-@router.get("/tasks/{task_id}", response_model=schemas.TaskInDB,
+
+@router.get(
+    "/tasks/{task_id}",
+    response_model=schemas.TaskInDB,
     summary="Get task by ID",
     description="""
     Retrieve a specific task by its UUID.
@@ -163,7 +169,7 @@ async def create_task(
                         "input_data": {
                             "platforms": ["twitter", "reddit"],
                             "categories": ["technology"],
-                            "time_range": "24h"
+                            "time_range": "24h",
                         },
                         "user_id": 1,
                         "created_at": "2025-05-10T21:45:00",
@@ -176,52 +182,44 @@ async def create_task(
                                     "topic": "AI in Healthcare",
                                     "score": 0.85,
                                     "sources": ["twitter", "reddit"],
-                                    "sentiment": "positive"
+                                    "sentiment": "positive",
                                 }
                             ],
-                            "analysis": "Healthcare AI is trending due to..."
+                            "analysis": "Healthcare AI is trending due to...",
                         },
-                        "error": None
+                        "error": None,
                     }
                 }
-            }
+            },
         },
         403: {
             "description": "Not enough permissions",
             "content": {
-                "application/json": {
-                    "example": {"detail": "Not enough permissions"}
-                }
-            }
+                "application/json": {"example": {"detail": "Not enough permissions"}}
+            },
         },
         404: {
             "description": "Task not found",
-            "content": {
-                "application/json": {
-                    "example": {"detail": "Task not found"}
-                }
-            }
-        }
-    }
+            "content": {"application/json": {"example": {"detail": "Task not found"}}},
+        },
+    },
 )
 async def read_task(
     task_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ) -> Any:
     """Get task by ID."""
     task = db.query(AgentTask).filter(AgentTask.task_id == task_id).first()
     if not task:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
         )
     if task.user_id != current_user.id and not current_user.is_superuser:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
-        
+
     # Get latest status from queue
     queue_status = queue_manager.get_task_status(task_id)
     if queue_status.get("status") != task.status:
@@ -232,10 +230,13 @@ async def read_task(
             task.completed_at = queue_status.get("updated_at")
         db.commit()
         db.refresh(task)
-        
+
     return task
 
-@router.get("/tasks/", response_model=schemas.TaskList,
+
+@router.get(
+    "/tasks/",
+    response_model=schemas.TaskList,
     summary="List tasks",
     description="""
     List all tasks with support for filtering and pagination.
@@ -264,7 +265,7 @@ async def read_task(
                                 "input_data": {
                                     "platforms": ["twitter", "reddit"],
                                     "categories": ["technology"],
-                                    "time_range": "24h"
+                                    "time_range": "24h",
                                 },
                                 "user_id": 1,
                                 "created_at": "2025-05-10T21:45:00",
@@ -277,20 +278,20 @@ async def read_task(
                                             "topic": "AI in Healthcare",
                                             "score": 0.85,
                                             "sources": ["twitter", "reddit"],
-                                            "sentiment": "positive"
+                                            "sentiment": "positive",
                                         }
                                     ],
-                                    "analysis": "Healthcare AI is trending due to..."
+                                    "analysis": "Healthcare AI is trending due to...",
                                 },
-                                "error": None
+                                "error": None,
                             }
                         ],
-                        "total": 1
+                        "total": 1,
                     }
                 }
-            }
+            },
         }
-    }
+    },
 )
 async def list_tasks(
     db: Session = Depends(get_db),
@@ -298,24 +299,24 @@ async def list_tasks(
     limit: int = 100,
     status: str | None = None,
     agent_type: str | None = None,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ) -> Any:
     """List tasks."""
     query = db.query(AgentTask)
-    
+
     # Filter by user unless superuser
     if not current_user.is_superuser:
         query = query.filter(AgentTask.user_id == current_user.id)
-        
+
     # Apply filters
     if status:
         query = query.filter(AgentTask.status == status)
     if agent_type:
         query = query.filter(AgentTask.agent_type == agent_type)
-        
+
     total = query.count()
     tasks = query.order_by(AgentTask.created_at.desc()).offset(skip).limit(limit).all()
-    
+
     # Update task statuses from queue
     for task in tasks:
         queue_status = queue_manager.get_task_status(task.task_id)
@@ -327,10 +328,13 @@ async def list_tasks(
                 task.completed_at = queue_status.get("updated_at")
     db.commit()
     db.refresh_all(tasks)
-    
+
     return {"tasks": tasks, "total": total}
 
-@router.delete("/tasks/{task_id}", response_model=schemas.Message,
+
+@router.delete(
+    "/tasks/{task_id}",
+    response_model=schemas.Message,
     summary="Delete task",
     description="""
     Delete a task by its UUID.
@@ -345,44 +349,36 @@ async def list_tasks(
                 "application/json": {
                     "example": {"message": "Task deleted successfully"}
                 }
-            }
+            },
         },
         403: {
             "description": "Not enough permissions",
             "content": {
-                "application/json": {
-                    "example": {"detail": "Not enough permissions"}
-                }
-            }
+                "application/json": {"example": {"detail": "Not enough permissions"}}
+            },
         },
         404: {
             "description": "Task not found",
-            "content": {
-                "application/json": {
-                    "example": {"detail": "Task not found"}
-                }
-            }
-        }
-    }
+            "content": {"application/json": {"example": {"detail": "Task not found"}}},
+        },
+    },
 )
 async def delete_task(
     task_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ) -> Any:
     """Delete task by ID."""
     task = db.query(AgentTask).filter(AgentTask.task_id == task_id).first()
     if not task:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
         )
     if task.user_id != current_user.id and not current_user.is_superuser:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
-        
+
     db.delete(task)
     db.commit()
     return {"message": "Task deleted successfully"}

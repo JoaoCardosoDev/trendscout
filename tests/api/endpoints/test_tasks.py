@@ -8,8 +8,12 @@ from trendscout.core.security import create_access_token
 from trendscout.models.task import Task
 from trendscout.models.user import User
 
+
 def test_create_task(
-    client: TestClient, test_user: Dict[str, str], test_task: Dict[str, str], db: Session
+    client: TestClient,
+    test_user: Dict[str, str],
+    test_task: Dict[str, str],
+    db: Session,
 ) -> None:
     """Test task creation endpoint."""
     # Create a user
@@ -23,7 +27,7 @@ def test_create_task(
 
     access_token = create_access_token(subject=user.email)
     headers = {"Authorization": f"Bearer {access_token}"}
-    
+
     response = client.post("/tasks/", headers=headers, json=test_task)
     result = response.json()
 
@@ -35,14 +39,19 @@ def test_create_task(
     assert "id" in result
     assert "created_at" in result
 
+
 def test_create_task_no_auth(client: TestClient, test_task: Dict[str, str]) -> None:
     """Test task creation without authentication."""
     response = client.post("/tasks/", json=test_task)
     assert response.status_code == 401
     assert response.json()["detail"] == "Not authenticated"
 
+
 def test_read_task(
-    client: TestClient, test_user: Dict[str, str], test_task: Dict[str, str], db: Session
+    client: TestClient,
+    test_user: Dict[str, str],
+    test_task: Dict[str, str],
+    db: Session,
 ) -> None:
     """Test getting task by ID."""
     # Create a user
@@ -68,7 +77,7 @@ def test_read_task(
 
     access_token = create_access_token(subject=user.email)
     headers = {"Authorization": f"Bearer {access_token}"}
-    
+
     response = client.get(f"/tasks/{task.id}", headers=headers)
     result = response.json()
 
@@ -76,6 +85,7 @@ def test_read_task(
     assert result["title"] == test_task["title"]
     assert result["description"] == test_task["description"]
     assert result["id"] == task.id
+
 
 def test_read_task_not_found(
     client: TestClient, test_user: Dict[str, str], db: Session
@@ -92,13 +102,17 @@ def test_read_task_not_found(
 
     access_token = create_access_token(subject=user.email)
     headers = {"Authorization": f"Bearer {access_token}"}
-    
+
     response = client.get("/tasks/999", headers=headers)
     assert response.status_code == 404
     assert response.json()["detail"] == "Task not found"
 
+
 def test_read_tasks(
-    client: TestClient, test_user: Dict[str, str], test_task: Dict[str, str], db: Session
+    client: TestClient,
+    test_user: Dict[str, str],
+    test_task: Dict[str, str],
+    db: Session,
 ) -> None:
     """Test getting list of user's tasks."""
     # Create a user
@@ -126,7 +140,7 @@ def test_read_tasks(
 
     access_token = create_access_token(subject=user.email)
     headers = {"Authorization": f"Bearer {access_token}"}
-    
+
     response = client.get("/tasks/", headers=headers)
     results = response.json()
 
@@ -137,8 +151,12 @@ def test_read_tasks(
         assert result["description"] == test_task["description"]
         assert "id" in result
 
+
 def test_update_task_status(
-    client: TestClient, test_user: Dict[str, str], test_task: Dict[str, str], db: Session
+    client: TestClient,
+    test_user: Dict[str, str],
+    test_task: Dict[str, str],
+    db: Session,
 ) -> None:
     """Test updating task status."""
     # Create a user
@@ -164,7 +182,7 @@ def test_update_task_status(
 
     access_token = create_access_token(subject=user.email)
     headers = {"Authorization": f"Bearer {access_token}"}
-    
+
     update_data = {"status": "completed"}
     response = client.patch(f"/tasks/{task.id}", headers=headers, json=update_data)
     result = response.json()
@@ -173,8 +191,12 @@ def test_update_task_status(
     assert result["status"] == "completed"
     assert result["id"] == task.id
 
+
 def test_delete_task(
-    client: TestClient, test_user: Dict[str, str], test_task: Dict[str, str], db: Session
+    client: TestClient,
+    test_user: Dict[str, str],
+    test_task: Dict[str, str],
+    db: Session,
 ) -> None:
     """Test task deletion."""
     # Create a user
@@ -200,7 +222,7 @@ def test_delete_task(
 
     access_token = create_access_token(subject=user.email)
     headers = {"Authorization": f"Bearer {access_token}"}
-    
+
     response = client.delete(f"/tasks/{task.id}", headers=headers)
     assert response.status_code == 200
 

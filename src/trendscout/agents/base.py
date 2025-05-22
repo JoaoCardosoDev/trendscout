@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from crewai import Agent
 from typing import Any, Dict, Optional
 from langchain_community.chat_models import ChatLiteLLM
-import litellm # Import litellm
+import litellm  # Import litellm
 from ..core.config import get_settings
 
 settings = get_settings()
@@ -13,6 +13,7 @@ try:
     print("LiteLLM internal debug mode turned ON.")
 except Exception as e:
     print(f"Could not turn on LiteLLM internal debug: {e}")
+
 
 # We are now relying on OLLAMA_API_BASE_URL environment variable primarily.
 class BaseAgent(ABC):
@@ -26,7 +27,7 @@ class BaseAgent(ABC):
         backstory: str,
         model: Optional[str] = None,
         temperature: float = 0.7,
-        **kwargs
+        **kwargs,
     ):
         self.name = name
         self.role = role
@@ -46,7 +47,7 @@ class BaseAgent(ABC):
             ollama_llm = ChatLiteLLM(
                 model=f"ollama/{self.model}",
                 temperature=self.temperature,
-                request_timeout=settings.OLLAMA_REQUEST_TIMEOUT
+                request_timeout=settings.OLLAMA_REQUEST_TIMEOUT,
             )
 
             self._agent = Agent(
@@ -57,7 +58,7 @@ class BaseAgent(ABC):
                 llm=ollama_llm,
                 allow_delegation=False,
                 verbose=True,
-                **self.kwargs
+                **self.kwargs,
             )
         return self._agent
 
