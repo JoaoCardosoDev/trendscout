@@ -10,49 +10,51 @@ from ...models.task import AgentTask
 from ...models.user import User
 from .auth import get_current_user
 
-router = APIRouter(prefix="/tasks", tags=["tasks"])
+router = APIRouter(tags=["tasks"])
 
-@router.post("", response_model=schemas.TaskInDB,
+@router.post("/tasks/", response_model=schemas.TaskInDB,
     summary="Create new agent task",
     description="""
     Create a new task to be executed by an AI agent.
     
     Available agent types:
-    * `trend_analyzer`: Analyzes social media platforms to identify trending topics
+    * `trend_analyzer`: Analyzes social media platforms to identify trending topics.
+      Input: `{"query": "your topic for trend analysis"}`
+      Example:
       ```json
       {
         "agent_type": "trend_analyzer",
-        "input_data": {
-          "platforms": ["twitter", "reddit"],
-          "categories": ["technology", "gaming"],
-          "time_range": "24h"
-        }
+        "input_data": { "query": "AI in education" }
       }
       ```
     
-    * `content_generator`: Creates engaging post ideas based on trends
+    * `content_generator`: Creates engaging post ideas based on trends or a topic.
+      Input: `{"query": "your topic or trend summary for content generation"}`
+      Example:
       ```json
       {
         "agent_type": "content_generator",
-        "input_data": {
-          "topic": "AI technology trends",
-          "tone": "professional",
-          "target_audience": "tech professionals",
-          "content_type": "blog_post"
-        }
+        "input_data": { "query": "Post ideas for AI in education trends" }
       }
       ```
     
-    * `scheduler`: Determines optimal publishing times
+    * `scheduler`: Determines optimal publishing times for given content characteristics.
+      Input: `{"query": "details about content and audience for scheduling"}`
+      Example:
       ```json
       {
         "agent_type": "scheduler",
-        "input_data": {
-          "content_type": "social_media_post",
-          "target_audience": "tech professionals",
-          "timezone": "UTC",
-          "days_to_analyze": 7
-        }
+        "input_data": { "query": "Schedule blog post about AI for tech professionals" }
+      }
+      ```
+
+    * `trend_to_post_crew`: A full workflow that takes a topic, analyzes trends, generates content, and suggests a schedule.
+      Input: `{"topic": "your initial topic"}`
+      Example:
+      ```json
+      {
+        "agent_type": "trend_to_post_crew",
+        "input_data": { "topic": "sustainable fashion" }
       }
       ```
     
@@ -119,7 +121,7 @@ async def create_task(
     
     return db_task
 
-@router.get("/{task_id}", response_model=schemas.TaskInDB,
+@router.get("/tasks/{task_id}", response_model=schemas.TaskInDB,
     summary="Get task by ID",
     description="""
     Retrieve a specific task by its UUID.
@@ -233,7 +235,7 @@ async def read_task(
         
     return task
 
-@router.get("", response_model=schemas.TaskList,
+@router.get("/tasks/", response_model=schemas.TaskList,
     summary="List tasks",
     description="""
     List all tasks with support for filtering and pagination.
@@ -328,7 +330,7 @@ async def list_tasks(
     
     return {"tasks": tasks, "total": total}
 
-@router.delete("/{task_id}", response_model=schemas.Message,
+@router.delete("/tasks/{task_id}", response_model=schemas.Message,
     summary="Delete task",
     description="""
     Delete a task by its UUID.

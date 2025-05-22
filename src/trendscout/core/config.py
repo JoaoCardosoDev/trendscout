@@ -53,7 +53,11 @@ class Settings(BaseSettings):
     # Ollama
     OLLAMA_BASE_URL: str
     OLLAMA_MODEL: str = "llama2"  # Default model
-    OLLAMA_TIMEOUT: int = 300  # 5 minutes timeout
+    OLLAMA_TIMEOUT: int = 600  # 10 minutes timeout (increased from 300)
+    OLLAMA_REQUEST_TIMEOUT: int = 300  # 1 minute timeout for requests
+    
+    # CORS
+    BACKEND_CORS_ORIGINS: Optional[list[str]] = []
     
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
@@ -98,3 +102,5 @@ def get_settings() -> Settings:
     settings = Settings()
     settings.validate_all()
     return settings
+
+settings = get_settings()

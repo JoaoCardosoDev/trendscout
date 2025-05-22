@@ -39,7 +39,7 @@ class LoginRequest(BaseModel):
 
 # Task Schemas
 class TaskBase(BaseModel):
-    agent_type: str = Field(..., pattern="^(trend_analyzer|content_generator|scheduler)$")
+    agent_type: str = Field(..., pattern="^(trend_analyzer|content_generator|scheduler|trend_to_post_crew)$")
     input_data: Dict[str, Any]
 
 class TaskCreate(TaskBase):
@@ -60,6 +60,7 @@ class TaskInDB(TaskBase):
     completed_at: Optional[datetime] = None
     execution_time: Optional[int] = None
     result: Optional[Dict[str, Any]] = None
+    intermediate_steps: Optional[List[Dict[str, Any]]] = None # Add new field
     error: Optional[str] = None
 
     class Config:

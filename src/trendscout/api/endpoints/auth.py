@@ -8,8 +8,8 @@ from ...db.session import get_db
 from .. import schemas
 from ...models.user import User
 
-router = APIRouter(prefix="/auth", tags=["auth"])
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+router = APIRouter(tags=["auth"])
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 def get_current_user(
     db: Session = Depends(get_db),
