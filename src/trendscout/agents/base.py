@@ -1,14 +1,23 @@
 from abc import ABC, abstractmethod
 from crewai import Agent
 from typing import Any, Dict, Optional
-from ..core.ollama import ollama_service
+from langchain_community.chat_models import ChatLiteLLM
+import litellm # Import litellm
 from ..core.config import get_settings
 
 settings = get_settings()
 
+# Try enabling LiteLLM's most verbose internal debugging
+try:
+    litellm._turn_on_debug()
+    print("LiteLLM internal debug mode turned ON.")
+except Exception as e:
+    print(f"Could not turn on LiteLLM internal debug: {e}")
+
+# We are now relying on OLLAMA_API_BASE_URL environment variable primarily.
 class BaseAgent(ABC):
     """Base class for all Trendscout agents."""
-    
+
     def __init__(
         self,
         name: str,
@@ -32,26 +41,25 @@ class BaseAgent(ABC):
     def agent(self) -> Agent:
         """Get or create the CrewAI agent instance."""
         if self._agent is None:
+            # Initialize ChatLiteLLM for Ollama
+            # Relying on OLLAMA_API_BASE_URL environment variable picked up by LiteLLM
+            ollama_llm = ChatLiteLLM(
+                model=f"ollama/{self.model}",
+                temperature=self.temperature,
+                request_timeout=settings.OLLAMA_REQUEST_TIMEOUT
+            )
+
             self._agent = Agent(
                 name=self.name,
                 role=self.role,
                 goal=self.goal,
                 backstory=self.backstory,
-                llm=self._create_ollama_callback(),
+                llm=ollama_llm,
+                allow_delegation=False,
+                verbose=True,
                 **self.kwargs
             )
         return self._agent
-
-    def _create_ollama_callback(self):
-        """Create a callback function for CrewAI to use Ollama."""
-        async def ollama_call(prompt: str, system_prompt: Optional[str] = None) -> str:
-            return await ollama_service.generate(
-                prompt=prompt,
-                system_prompt=system_prompt,
-                model=self.model,
-                temperature=self.temperature
-            )
-        return ollama_call
 
     @abstractmethod
     async def execute(self, *args: Any, **kwargs: Dict[str, Any]) -> Any:

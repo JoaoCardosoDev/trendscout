@@ -1,4 +1,5 @@
 from typing import Any, Dict, List
+from crewai import Task # Import Task
 from .base import BaseAgent
 
 class ContentGeneratorAgent(BaseAgent):
@@ -14,10 +15,45 @@ class ContentGeneratorAgent(BaseAgent):
                      "audience engagement and viral content mechanics.",
             temperature=0.8  # Slightly higher for more creative outputs
         )
+
+    def run(self, query: str) -> Dict[str, Any]:
+        """
+        Synchronous method to generate content ideas based on a simple query string (topic/trends).
+        This adapts the simple query to the agent's expected input for its underlying CrewAI agent.
+        """
+        
+        prompt = f"""
+        As a Creative Content Strategist, generate engaging content ideas based on the following topic or trends:
+        
+        Topic/Trends: "{query}"
+        
+        Consider various content types (e.g., blog posts, social media updates, video scripts) and target platforms.
+        
+        Provide:
+        1. A list of creative content ideas.
+        2. A brief content strategy overview.
+        3. Relevant hashtags.
+        4. Tips for maximizing engagement.
+        
+        Format the response as a structured output.
+        """
+        
+        # Execute content generation using the underlying CrewAI agent
+        task = Task(
+            description=prompt.strip(),
+            agent=self.agent,
+            expected_output="A structured list of content ideas, a strategy overview, relevant hashtags, and engagement tips."
+        )
+        raw_result = self.agent.execute_task(task)
+        
+        # Parse and structure the result
+        structured_result = self._parse_result(raw_result) # _parse_result might need adjustment
+        
+        return structured_result
         
     async def execute(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Generate content ideas based on trend analysis.
+        Asynchronous method to generate content ideas based on structured trend analysis.
         
         Args:
             data: Dictionary containing trend analysis to base content on

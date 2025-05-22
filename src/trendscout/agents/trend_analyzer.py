@@ -1,4 +1,5 @@
 from typing import Any, Dict, List
+from crewai import Task # Import Task
 from .base import BaseAgent
 
 class TrendAnalyzerAgent(BaseAgent):
@@ -14,10 +15,43 @@ class TrendAnalyzerAgent(BaseAgent):
                      "emerging trends across platforms.",
             temperature=0.7  # Balanced between creativity and accuracy
         )
+
+    def run(self, query: str) -> Dict[str, Any]:
+        """
+        Synchronous method to run trend analysis based on a simple query string.
+        This adapts the simple query to the agent's expected input for its underlying CrewAI agent.
+        """
+        
+        prompt = f"""
+        Analyze the following topic or query to identify current trends, key insights, and potential content angles:
+        Query: "{query}"
+
+        Provide:
+        1. A list of identified trends related to the query.
+        2. Detailed analysis of each trend.
+        3. Actionable recommendations or content ideas based on these findings.
+        
+        Format the response as a structured analysis.
+        """
+        
+        # Execute analysis using the underlying CrewAI agent
+        # BaseAgent's self.agent is a CrewAI Agent instance
+        task = Task(
+            description=prompt.strip(),
+            agent=self.agent,
+            expected_output="A structured analysis including trends, detailed analysis, and actionable recommendations."
+        )
+        raw_result = self.agent.execute_task(task)
+        
+        # Parse and structure the result (can reuse or adapt _parse_result)
+        # For simplicity, let's assume _parse_result can handle this raw_result.
+        structured_result = self._parse_result(raw_result)
+        
+        return structured_result
         
     async def execute(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Execute trend analysis on provided social media data.
+        Asynchronous method to execute trend analysis on provided structured social media data.
         
         Args:
             data: Dictionary containing social media data to analyze
@@ -126,8 +160,6 @@ class TrendAnalyzerAgent(BaseAgent):
         
     def _parse_result(self, result: str) -> Dict[str, Any]:
         """Parse and structure the AI model's response."""
-        # TODO: Implement more sophisticated parsing based on actual model output format
-        # For now, using a simple structure
         try:
             # Basic structure assuming model returns somewhat formatted text
             sections = result.split("\n\n")

@@ -23,6 +23,9 @@ python-json-logger = "*"
 pydantic-settings = "*"
 tenacity = "*"
 email-validator = "*"
+crewai = "*"
+crewai-tools = "*"
+langchain-community = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"

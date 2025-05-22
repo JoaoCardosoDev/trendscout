@@ -1,5 +1,6 @@
 from typing import Any, Dict, List
 from datetime import datetime, timedelta
+from crewai import Task # Import Task
 from .base import BaseAgent
 
 class SchedulerAgent(BaseAgent):
@@ -13,12 +14,46 @@ class SchedulerAgent(BaseAgent):
             backstory="Analytics expert specializing in content scheduling optimization, "
                      "with deep understanding of platform-specific engagement patterns "
                      "and audience behavior across different time zones.",
-            temperature=0.6  # Lower for more consistent scheduling decisions
+            temperature=0.6
         )
+
+    def run(self, query: str) -> Dict[str, Any]:
+        """
+        Synchronous method to generate a schedule based on a simple query string (content description/campaign).
+        This adapts the simple query to the agent's expected input for its underlying CrewAI agent.
+        """
+        
+        prompt = f"""
+        As a Scheduling Optimization Expert, create an optimal publishing schedule for the following content or campaign:
+        
+        Content/Campaign Description: "{query}"
+        
+        Consider target platforms (e.g., Twitter, Instagram, Blog), target audience, and general best practices for engagement.
+        
+        Provide:
+        1. A detailed publishing schedule with suggested timings.
+        2. Rationale for your scheduling decisions.
+        3. Optimization recommendations.
+        
+        Format the response as a structured output.
+        """
+        
+        # Execute scheduling using the underlying CrewAI agent
+        task = Task(
+            description=prompt.strip(),
+            agent=self.agent,
+            expected_output="A structured publishing schedule, rationale for decisions, and optimization recommendations."
+        )
+        raw_result = self.agent.execute_task(task)
+        
+        # Parse and structure the result
+        structured_result = self._parse_result(raw_result) # _parse_result might need adjustment
+        
+        return structured_result
         
     async def execute(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Generate optimal publishing schedule for content.
+        Asynchronous method to generate optimal publishing schedule for content based on structured input.
         
         Args:
             data: Dictionary containing content and scheduling requirements
