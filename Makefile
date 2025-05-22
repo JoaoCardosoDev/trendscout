@@ -1,4 +1,4 @@
-.PHONY: help install test format lint clean docker-build docker-up docker-down db-init dev
+.PHONY: help install test format lint clean docker-build docker-up docker-down docker-rebuild db-init dev
 
 # Default target when running just 'make'
 help:
@@ -11,6 +11,7 @@ help:
 	@echo "docker-build- Build Docker images"
 	@echo "docker-up   - Start all Docker containers"
 	@echo "docker-down - Stop all Docker containers"
+	@echo "docker-rebuild - Stop, rebuild, and start all Docker containers"
 	@echo "db-init     - Initialize the database"
 	@echo "dev         - Start development server"
 
@@ -46,6 +47,9 @@ docker-up:
 
 docker-down:
 	docker-compose down
+
+docker-rebuild: docker-down docker-build docker-up
+	@echo "Docker containers stopped, rebuilt, and started."
 
 # Database initialization
 db-init:

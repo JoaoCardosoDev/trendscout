@@ -14,6 +14,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - trendscout_network
 
   redis:
     image: redis:7
@@ -26,13 +28,17 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - trendscout_network
 
   ollama:
     image: ollama/ollama:latest
+    entrypoint: /app/src/scripts/ollama-entrypoint.sh
     ports:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+      - ./src/scripts/ollama-entrypoint.sh:/app/src/scripts/ollama-entrypoint.sh 
     deploy:
       resources:
         reservations:
@@ -40,11 +46,21 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list | grep llama2 || exit 1"] 
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s 
+    networks:
+      - trendscout_network
 
   api:
     build:
       context: .
       dockerfile: Dockerfile
+    volumes: 
+      - .:/app 
     ports:
       - "8000:8000"
     environment:
@@ -65,9 +81,47 @@ services:
       redis:
         condition: service_healthy
       ollama:
+        condition: service_healthy
+    command: ["/app/src/scripts/wait-for-services.sh", "/app/src/scripts/api-entrypoint.sh"]
+    networks:
+      - trendscout_network
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: poetry run python -m trendscout.worker
+    environment:
+      - PYTHONPATH=/app/src
+      - POSTGRES_SERVER=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - REDIS_HOST=redis
+      - REDIS_PORT=${REDIS_PORT}
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_API_BASE_URL=http://ollama:11434
+      - OLLAMA_API_BASE=http://ollama:11434
+      - SECRET_KEY=${SECRET_KEY}
+      - LITELLM_LOG=DEBUG
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+      api:
         condition: service_started
+    networks:
+      - trendscout_network
 
 volumes:
   postgres_data:
   redis_data:
   ollama_data:
+
+networks:
+  trendscout_network:
+    driver: bridge

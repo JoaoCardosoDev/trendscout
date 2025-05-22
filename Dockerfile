@@ -26,11 +26,22 @@ COPY tests/ ./tests/
 # Make wait-for-services script executable
 RUN chmod +x /app/src/scripts/wait-for-services.sh
 
+# Make ollama-entrypoint.sh executable
+RUN chmod +x /app/src/scripts/ollama-entrypoint.sh
+
+# Make api-entrypoint.sh executable
+COPY src/scripts/api-entrypoint.sh /app/src/scripts/api-entrypoint.sh
+RUN chmod +x /app/src/scripts/api-entrypoint.sh
+
 # Configure Poetry
 RUN poetry config virtualenvs.create false
 
 # Install dependencies
 RUN poetry install --no-interaction --no-root
 
+# Set PYTHONPATH to include the src directory, making 'trendscout' a top-level package
+ENV PYTHONPATH "/app/src"
+
 # Run the application with wait-for-services script
-CMD ["/app/src/scripts/wait-for-services.sh", "poetry", "run", "uvicorn", "src.trendscout.main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "debug"]
+# Changed "src.trendscout.main:app" to "trendscout.main:app" to align with PYTHONPATH
+CMD ["/app/src/scripts/wait-for-services.sh", "poetry", "run", "uvicorn", "trendscout.main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "debug"]
