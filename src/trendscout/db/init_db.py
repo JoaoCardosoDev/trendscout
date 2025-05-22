@@ -4,7 +4,6 @@ from sqlalchemy.exc import SQLAlchemyError
 from .base_class import Base
 from .session import engine, SessionLocal
 from ..models.user import User
-from ..models.task import AgentTask
 from ..core.config import get_settings
 from ..core.logging import logger
 
@@ -26,7 +25,7 @@ def create_superuser(db: Session) -> None:
 
     try:
         # Check if superuser exists
-        superuser = db.query(User).filter(User.is_superuser == True).first()
+        superuser = db.query(User).filter(User.is_superuser is True).first()
         if not superuser:
             from ..core.security import get_password_hash
 

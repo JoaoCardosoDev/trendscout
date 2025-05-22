@@ -1,7 +1,5 @@
 import httpx
-import json
-import asyncio
-from typing import Any, Dict, Optional
+from typing import Optional
 from tenacity import retry, stop_after_attempt, wait_exponential
 from .config import get_settings
 from .logging import logger
@@ -11,8 +9,6 @@ settings = get_settings()
 
 class ModelNotLoadedError(Exception):
     """Raised when a required model is not loaded in Ollama."""
-
-    pass
 
 
 class OllamaService:

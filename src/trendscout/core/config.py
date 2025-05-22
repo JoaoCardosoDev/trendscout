@@ -8,8 +8,6 @@ from .logging import logger
 class MissingEnvironmentError(Exception):
     """Raised when required environment variables are missing."""
 
-    pass
-
 
 class Settings(BaseSettings):
     """Application settings with validation."""

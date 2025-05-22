@@ -6,7 +6,6 @@ from pathlib import Path
 
 from trendscout.core.config import settings
 from trendscout.api.api_v1.api import api_router
-from trendscout.db.session import SessionLocal
 from trendscout.db import base_class  # noqa: F401
 from trendscout.db import init_db
 

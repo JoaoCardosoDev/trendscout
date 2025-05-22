@@ -65,9 +65,7 @@ class BaseAgent(ABC):
     @abstractmethod
     async def execute(self, *args: Any, **kwargs: Dict[str, Any]) -> Any:
         """Execute the agent's primary task."""
-        pass
 
     @abstractmethod
     async def validate_result(self, result: Any) -> bool:
         """Validate the result of the agent's execution."""
-        pass

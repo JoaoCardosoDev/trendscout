@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict
 from crewai import Task  # Import Task
 from .base import BaseAgent
 
@@ -31,7 +31,7 @@ class TrendAnalyzerAgent(BaseAgent):
         1. A list of identified trends related to the query.
         2. Detailed analysis of each trend.
         3. Actionable recommendations or content ideas based on these findings.
-        
+
         Format the response as a structured analysis.
         """
 
@@ -142,21 +142,21 @@ class TrendAnalyzerAgent(BaseAgent):
 
         prompt = f"""
         As a Trend Analysis Expert, analyze the following {platform} data from the past {timeframe}:
-        
+
         Dataset: {content_count} posts/tweets
-        
+
         Identify:
         1. Key trending topics and themes
         2. Emerging patterns in engagement
         3. Sentiment trends
         4. Notable discussions or conversations
         5. Potential viral content indicators
-        
+
         Provide:
         1. A list of identified trends with supporting data
         2. Detailed analysis of each trend
         3. Actionable recommendations based on findings
-        
+
         Format the response as a structured analysis that can be parsed into trends, analysis, and recommendations.
         """
 

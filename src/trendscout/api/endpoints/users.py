@@ -18,7 +18,7 @@ router = APIRouter(prefix="/users", tags=["users"])
     summary="Create new user",
     description="""
     Create a new user account with the provided information.
-    
+
     Note: By default, users are created with `is_active=true` and `is_superuser=false`.
     Only superusers can create other superusers.
     """,
@@ -105,12 +105,12 @@ async def read_user_me(current_user: User = Depends(get_current_user)) -> Any:
     summary="Update current user",
     description="""
     Update information for the currently authenticated user.
-    
+
     Fields that can be updated:
     - email
     - full_name
     - password (must be at least 8 characters)
-    
+
     Only provide the fields you want to update.
     """,
     responses={
@@ -169,7 +169,7 @@ async def update_user_me(
     summary="Get user by ID",
     description="""
     Retrieve information about a specific user by their ID.
-    
+
     Note: Regular users can only access their own information.
     Superusers can access information about any user.
     """,
@@ -226,9 +226,9 @@ async def read_user_by_id(
     summary="List users",
     description="""
     List all users in the system with pagination support.
-    
+
     Note: This endpoint is only accessible to superusers.
-    
+
     Parameters:
     - skip: Number of users to skip (for pagination)
     - limit: Maximum number of users to return

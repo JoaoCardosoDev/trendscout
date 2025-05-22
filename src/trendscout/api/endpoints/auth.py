@@ -51,9 +51,9 @@ def authenticate_user(db: Session, email: str, password: str) -> Any:
     summary="Create access token",
     description="""
     Login endpoint that creates a JWT access token for authenticating future requests.
-    
+
     Use your email as the username when logging in.
-    
+
     The access token should be included in the Authorization header of subsequent requests:
     ```
     Authorization: Bearer <access_token>

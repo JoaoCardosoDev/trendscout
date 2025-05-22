@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Set, Type
+from typing import Any, List, Set, Type
 from sqlalchemy import MetaData
 from sqlalchemy.orm import registry, DeclarativeBase, declared_attr
 

@@ -19,7 +19,7 @@ router = APIRouter(tags=["tasks"])
     summary="Create new agent task",
     description="""
     Create a new task to be executed by an AI agent.
-    
+
     Available agent types:
     * `trend_analyzer`: Analyzes social media platforms to identify trending topics.
       Input: `{"query": "your topic for trend analysis"}`
@@ -30,7 +30,7 @@ router = APIRouter(tags=["tasks"])
         "input_data": { "query": "AI in education" }
       }
       ```
-    
+
     * `content_generator`: Creates engaging post ideas based on trends or a topic.
       Input: `{"query": "your topic or trend summary for content generation"}`
       Example:
@@ -40,7 +40,7 @@ router = APIRouter(tags=["tasks"])
         "input_data": { "query": "Post ideas for AI in education trends" }
       }
       ```
-    
+
     * `scheduler`: Determines optimal publishing times for given content characteristics.
       Input: `{"query": "details about content and audience for scheduling"}`
       Example:
@@ -60,7 +60,7 @@ router = APIRouter(tags=["tasks"])
         "input_data": { "topic": "sustainable fashion" }
       }
       ```
-    
+
     Tasks are processed asynchronously. Use the returned task_id to check the status and retrieve results.
     """,
     responses={
@@ -131,13 +131,13 @@ async def create_task(
     summary="Get task by ID",
     description="""
     Retrieve a specific task by its UUID.
-    
+
     The task status can be one of:
     * `pending`: Task is waiting to be processed
     * `running`: Task is currently being processed
     * `completed`: Task has finished successfully
     * `failed`: Task encountered an error
-    
+
     When the task is completed, the result field will contain the agent's output:
     ```json
     {
@@ -240,13 +240,13 @@ async def read_task(
     summary="List tasks",
     description="""
     List all tasks with support for filtering and pagination.
-    
+
     Parameters:
     - skip: Number of tasks to skip (for pagination)
     - limit: Maximum number of tasks to return
     - status: Filter by task status (pending, running, completed, failed)
     - agent_type: Filter by agent type (trend_analyzer, content_generator, scheduler)
-    
+
     Note: Regular users can only see their own tasks.
     Superusers can see all tasks in the system.
     """,
@@ -338,7 +338,7 @@ async def list_tasks(
     summary="Delete task",
     description="""
     Delete a task by its UUID.
-    
+
     Note: Regular users can only delete their own tasks.
     Superusers can delete any task.
     """,

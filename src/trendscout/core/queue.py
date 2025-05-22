@@ -1,4 +1,4 @@
-from typing import Any, Callable
+from typing import Any
 import json
 import redis
 from datetime import datetime

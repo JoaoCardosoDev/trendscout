@@ -1,14 +1,11 @@
-import os
-from typing import AsyncGenerator, Generator
+from typing import Generator
 
 import pytest
-import pytest_asyncio
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from trendscout.core.config import settings
 from trendscout.db.base_class import Base
 from trendscout.db.session import get_db
 from trendscout.main import app

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict
 from datetime import datetime, timedelta
 from crewai import Task  # Import Task
 from .base import BaseAgent
@@ -26,16 +26,16 @@ class SchedulerAgent(BaseAgent):
 
         prompt = f"""
         As a Scheduling Optimization Expert, create an optimal publishing schedule for the following content or campaign:
-        
+
         Content/Campaign Description: "{query}"
-        
+
         Consider target platforms (e.g., Twitter, Instagram, Blog), target audience, and general best practices for engagement.
-        
+
         Provide:
         1. A detailed publishing schedule with suggested timings.
         2. Rationale for your scheduling decisions.
         3. Optimization recommendations.
-        
+
         Format the response as a structured output.
         """
 
@@ -167,14 +167,14 @@ class SchedulerAgent(BaseAgent):
 
         prompt = f"""
         As a Scheduling Optimization Expert, create an optimal publishing schedule for:
-        
+
         Platform: {data["platform"]}
         Timezone: {data["timezone"]}
         Content Items: {content_count}
-        
+
         Constraints:
         {constraints}
-        
+
         Consider:
         1. Platform-specific peak engagement times
         2. Target audience activity patterns
@@ -182,13 +182,13 @@ class SchedulerAgent(BaseAgent):
         4. Frequency and spacing of posts
         5. Competition and noise levels
         6. Time zone impact on reach
-        
+
         Provide:
         1. A detailed publishing schedule with timing and expected engagement
         2. Rationale for scheduling decisions
         3. Optimization recommendations
         4. Expected performance metrics
-        
+
         Format the response as a structured output that can be parsed into schedule, rationale, optimizations, and metrics.
         """
 

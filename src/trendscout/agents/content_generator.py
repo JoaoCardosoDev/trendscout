@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict
 from crewai import Task  # Import Task
 from .base import BaseAgent
 
@@ -25,17 +25,17 @@ class ContentGeneratorAgent(BaseAgent):
 
         prompt = f"""
         As a Creative Content Strategist, generate engaging content ideas based on the following topic or trends:
-        
+
         Topic/Trends: "{query}"
-        
+
         Consider various content types (e.g., blog posts, social media updates, video scripts) and target platforms.
-        
+
         Provide:
         1. A list of creative content ideas.
         2. A brief content strategy overview.
         3. Relevant hashtags.
         4. Tips for maximizing engagement.
-        
+
         Format the response as a structured output.
         """
 
@@ -160,27 +160,27 @@ class ContentGeneratorAgent(BaseAgent):
 
         prompt = f"""
         As a Creative Content Strategist, generate engaging content ideas based on these trends:
-        
+
         Trends:
         {trends}
-        
+
         Target Platform: {data["target_platform"]}
         Content Types Needed: {content_types}
         Brand Voice: {data["brand_voice"]}
-        
+
         Provide:
         1. A list of creative content ideas that align with the trends
         2. A content strategy that ties the ideas together
         3. Relevant hashtags to increase visibility
         4. Tips for maximizing engagement
-        
+
         For each content idea, consider:
         - Platform-specific best practices
         - Brand voice alignment
         - Engagement potential
         - Trend relevance
         - Viral mechanics
-        
+
         Format the response as a structured output that can be parsed into content ideas, strategy, hashtags, and engagement tips.
         """
 

@@ -7,7 +7,8 @@ from trendscout.core.queue import queue_manager
 from trendscout.core.logging import logger
 from trendscout.db.session import SessionLocal
 from trendscout.models.task import AgentTask
-from trendscout.models.user import User  # Ensure User model is imported
+
+# from trendscout.models.user import User  # Commented out as it's unused
 from trendscout.agents.trend_analyzer import TrendAnalyzerAgent
 from trendscout.agents.content_generator import ContentGeneratorAgent
 from trendscout.agents.scheduler import SchedulerAgent

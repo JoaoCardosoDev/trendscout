@@ -1,7 +1,6 @@
 """Tests for the logging system."""
 
 import json
-import logging
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -11,7 +10,6 @@ from fastapi.testclient import TestClient
 from trendscout.core.logging import (
     RequestContextMiddleware,
     log_request,
-    log_response,
     log_error,
     log_agent_task,
     log_performance_metric,
