@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trendscout UI</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Trendscout Simple UI</h1>
+
+        <!-- Login Section -->
+        <div id="login-section">
+            <h2>Login</h2>
+            <form id="login-form">
+                <div>
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="username" required>
+                </div>
+                <div>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+            <p id="login-message" class="message"></p>
+        </div>
+
+        <!-- Task Section (hidden until logged in) -->
+        <div id="task-section" style="display: none;">
+            <h2>Create Task</h2>
+            <form id="task-form">
+                <div>
+                    <label for="task-type">Task Type:</label>
+                    <select id="task-type" name="task_type">
+                        <option value="trend_analyzer">Trend Analyzer (Single Agent)</option>
+                        <option value="content_generator">Content Generator (Single Agent)</option>
+                        <option value="scheduler">Scheduler (Single Agent)</option>
+                        <option value="trend_to_post_crew">Full Trend-to-Post Workflow (Crew)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="task-input">Task Input (e.g., topic, keywords):</label>
+                    <textarea id="task-input" name="input_data" rows="3" required></textarea>
+                </div>
+                <button type="submit">Create Task</button>
+            </form>
+            <div id="task-creation-message" class="message"></div>
+
+            <h2>Task Status</h2>
+            <div id="task-status-area">
+                <p>No tasks created yet.</p>
+                <!-- Placeholder for individual task details -->
+                <div id="task-intermediate-steps-details" class="intermediate-steps-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

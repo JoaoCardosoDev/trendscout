@@ -1,0 +1,181 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    background-color: #f4f4f4;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding-top: 20px;
+}
+
+.container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 600px;
+}
+
+h1, h2 {
+    color: #333;
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+h2 {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="email"],
+input[type="password"],
+textarea,
+select {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+button {
+    background-color: #5cb85c;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #4cae4c;
+}
+
+.message {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.message.success {
+    background-color: #dff0d8;
+    color: #3c763d;
+    border: 1px solid #d6e9c6;
+}
+
+.message.error {
+    background-color: #f2dede;
+    color: #a94442;
+    border: 1px solid #ebccd1;
+}
+
+#task-status-area {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    min-height: 50px;
+}
+
+#task-status-area p {
+    margin: 5px 0;
+}
+
+#task-status-area .task-item {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+#task-status-area .task-item:last-child {
+    border-bottom: none;
+}
+
+/* Styles for intermediate steps */
+.intermediate-steps-container {
+    margin-top: 10px;
+    padding-left: 15px;
+    border-left: 2px solid #007bff; /* A distinct visual cue */
+}
+
+.intermediate-steps-container h4 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: #007bff;
+    font-size: 1em;
+}
+
+.intermediate-steps-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.intermediate-step-item {
+    background-color: #f0f8ff; /* Light blue background for each step */
+    border: 1px solid #cfe2f3;
+    padding: 8px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
+
+.intermediate-step-item p {
+    margin: 4px 0;
+    font-size: 0.9em;
+}
+
+.intermediate-step-item strong {
+    color: #333;
+}
+
+.intermediate-step-item div strong { /* Specifically for "Output:" label */
+    display: block;
+    margin-bottom: 3px;
+}
+
+.intermediate-step-item pre {
+    background-color: #e9ecef; /* Slightly darker background for preformatted text */
+    padding: 8px;
+    border-radius: 4px;
+    overflow-x: auto; /* Allow horizontal scrolling for long lines */
+    white-space: pre-wrap; /* Wrap long lines */
+    word-wrap: break-word; /* Break words if necessary */
+    font-size: 0.85em;
+    color: #495057;
+}
+
+.task-input-content pre,
+.task-result-content pre {
+    background-color: #e9ecef;
+    padding: 8px;
+    border-radius: 4px;
+    overflow-x: auto; /* Keep for genuinely un-wrappable content or if user prefers scrolling */
+    
+    /* Key properties for wrapping */
+    white-space: pre-wrap !important;       /* Preserve whitespace, wrap lines */
+    overflow-wrap: break-word !important;   /* Break long words/strings if they exceed container width */
+    /* word-break: break-all !important; */ /* More aggressive option, try overflow-wrap first */
+
+    font-size: 0.85em;
+    color: #495057;
+    
+    /* Ensure it takes up available width and can be constrained */
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+}
