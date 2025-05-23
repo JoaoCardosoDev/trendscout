@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from trendscout.core.security import create_access_token
-from trendscout.models.task import Task
+from trendscout.models.task import AgentTask
 from trendscout.models.user import User
 
 
@@ -63,7 +63,7 @@ def test_read_task(
     db.commit()
 
     # Create a task
-    task = Task(
+    task = AgentTask(
         title=test_task["title"],
         description=test_task["description"],
         task_type=test_task["task_type"],
@@ -125,7 +125,7 @@ def test_read_tasks(
 
     # Create multiple tasks
     tasks = [
-        Task(
+        AgentTask(
             title=f"{test_task['title']} {i}",
             description=test_task["description"],
             task_type=test_task["task_type"],
@@ -168,7 +168,7 @@ def test_update_task_status(
     db.commit()
 
     # Create a task
-    task = Task(
+    task = AgentTask(
         title=test_task["title"],
         description=test_task["description"],
         task_type=test_task["task_type"],
@@ -208,7 +208,7 @@ def test_delete_task(
     db.commit()
 
     # Create a task
-    task = Task(
+    task = AgentTask(
         title=test_task["title"],
         description=test_task["description"],
         task_type=test_task["task_type"],
