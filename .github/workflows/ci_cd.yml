@@ -95,9 +95,10 @@ jobs:
           POSTGRES_USER: testuser
           POSTGRES_PASSWORD: testpassword
           POSTGRES_DB: testdb
+          POSTGRES_PORT: 5432 # Added missing port
           REDIS_HOST: localhost
           REDIS_PORT: 6379
-          OLLAMA_API_BASE_URL: http://mock-ollama:80/api # Adjusted to port 80
+          OLLAMA_BASE_URL: http://mock-ollama:80/api # Renamed from OLLAMA_API_BASE_URL and uses port 80
           OLLAMA_MODEL_NAME: mock-model
           SECRET_KEY: testsecretkeyforci
           ALGORITHM: HS256
