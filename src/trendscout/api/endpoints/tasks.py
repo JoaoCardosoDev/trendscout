@@ -1,20 +1,21 @@
+import uuid
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import Any
-import uuid
 
 from ...core.queue import queue_manager
 from ...db.session import get_db
-from .. import schemas
 from ...models.task import AgentTask
 from ...models.user import User
+from .. import schemas
 from .auth import get_current_user
 
 router = APIRouter(tags=["tasks"])
 
 
 @router.post(
-    "/tasks/",
+    "/",
     response_model=schemas.TaskInDB,
     summary="Create new agent task",
     description="""
@@ -126,7 +127,7 @@ async def create_task(
 
 
 @router.get(
-    "/tasks/{task_id}",
+    "/{task_id}",
     response_model=schemas.TaskInDB,
     summary="Get task by ID",
     description="""
@@ -235,7 +236,7 @@ async def read_task(
 
 
 @router.get(
-    "/tasks/",
+    "/",
     response_model=schemas.TaskList,
     summary="List tasks",
     description="""
@@ -333,7 +334,7 @@ async def list_tasks(
 
 
 @router.delete(
-    "/tasks/{task_id}",
+    "/{task_id}",
     response_model=schemas.Message,
     summary="Delete task",
     description="""

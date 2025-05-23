@@ -1,19 +1,20 @@
-import time
 import json
-from sqlalchemy.orm import Session
+import time
 from datetime import datetime
 
-from trendscout.core.queue import queue_manager
-from trendscout.core.logging import logger
-from trendscout.db.session import SessionLocal
-from trendscout.models.task import AgentTask
+from sqlalchemy.orm import Session
+
+from trendscout.agents.content_generator import ContentGeneratorAgent
+from trendscout.agents.crew_defs import run_trend_to_post_workflow
+from trendscout.agents.scheduler import SchedulerAgent
 
 # from trendscout.models.user import User  # Commented out as it's unused
 from trendscout.agents.trend_analyzer import TrendAnalyzerAgent
-from trendscout.agents.content_generator import ContentGeneratorAgent
-from trendscout.agents.scheduler import SchedulerAgent
-from trendscout.agents.crew_defs import run_trend_to_post_workflow
 from trendscout.core.config import get_settings  # For potential future use
+from trendscout.core.logging import logger
+from trendscout.core.queue import queue_manager
+from trendscout.db.session import SessionLocal
+from trendscout.models.task import AgentTask
 
 settings = get_settings()
 
@@ -228,14 +229,17 @@ def process_task(task_data: dict):
             # Ensure error and result are serializable
             error_str = str(e)
             db_task.error = error_str
-            try:
-                # Attempt to serialize the exception args if they are simple
-                db_task.result = {
-                    "error": error_str,
-                    "details": vars(e) if hasattr(e, "__dict__") else None,
-                }
-            except TypeError:
-                db_task.result = {"error": error_str}
+            # Ensure result is a simple dictionary for JSON serialization
+            db_task.result = {"error": error_str, "type": e.__class__.__name__}
+            # Avoid complex objects like vars(e) which may not be serializable.
+            # If more details are needed, extract them carefully.
+            # For example, if e has a 'response' attribute that is an httpx.Response:
+            # if hasattr(e, 'response') and e.response is not None:
+            #     try:
+            #         db_task.result["response_text"] = e.response.text
+            #         db_task.result["response_status"] = e.response.status_code
+            #     except Exception: # Ignore if response attributes are not as expected
+            #         pass
             db.commit()
     finally:
         db.close()

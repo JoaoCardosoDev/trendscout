@@ -37,6 +37,7 @@ RUN chmod +x /app/src/scripts/api-entrypoint.sh
 RUN poetry config virtualenvs.create false
 
 # Install dependencies
+RUN poetry lock --no-interaction
 RUN poetry install --no-interaction --no-root
 
 # Set PYTHONPATH to include the src directory, making 'trendscout' a top-level package

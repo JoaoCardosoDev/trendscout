@@ -27,9 +27,9 @@ class TrendAnalyzerAgent(BaseAgent):
             "specializing in social media content analysis, news aggregation, and discovering "
             "emerging trends across various platforms and data streams.",
             temperature=0.7,
-            model_name=model,  # Pass model to super's model_name
+            model=model,  # Corrected: Pass model to super's 'model' parameter
         )
-        self.model = model  # Store for test verification if needed
+        # self.model = model # This line is redundant as super().__init__ already sets self.model
 
     def get_agent_config(self) -> Dict[str, str]:
         """Returns the agent's configuration."""
