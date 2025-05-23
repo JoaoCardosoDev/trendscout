@@ -62,25 +62,16 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       mock-ollama:
-        image: mendhak/http-https-echo
-        env:
-          HTTP_PORT: 11434 # Configure echo server to listen on port 11434
-        # The service will be available at mock-ollama:11434
-        # No host port mapping needed if only accessed by other services in the job network.
-        # However, to be explicit and ensure it's reachable as 'mock-ollama:11434'
-        # from the main job container, we can expose it.
-        # The tests use OLLAMA_API_BASE_URL: http://mock-ollama:11434/api
-        # So the service name 'mock-ollama' and port '11434' are key.
-        # Docker service networking handles this. Explicit port exposure isn't strictly
-        # necessary for service-to-service communication within the job,
-        # but good for clarity and if a health check needs to hit a mapped port.
-        # For the health check, localhost inside the health check refers to the service container itself.
+        image: nginx:alpine # Using nginx as a simple, reliable HTTP server
+        # nginx by default listens on port 80.
+        # The service will be available at mock-ollama:80
+        # Health check will target port 80 inside the container.
         options: >-
-          --health-cmd "curl -fSs http://localhost:11434/ping || exit 1"
+          --health-cmd "curl -f http://localhost:80/ || exit 1"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-          --health-start-period 10s
+          --health-start-period 10s # Give nginx a moment to start
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -106,7 +97,7 @@ jobs:
           POSTGRES_DB: testdb
           REDIS_HOST: localhost
           REDIS_PORT: 6379
-          OLLAMA_API_BASE_URL: http://mock-ollama:11434/api
+          OLLAMA_API_BASE_URL: http://mock-ollama:80/api # Adjusted to port 80
           OLLAMA_MODEL_NAME: mock-model
           SECRET_KEY: testsecretkeyforci
           ALGORITHM: HS256
