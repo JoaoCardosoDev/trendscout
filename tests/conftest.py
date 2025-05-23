@@ -5,31 +5,31 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from trendscout.core.config import settings  # Import application settings
+from trendscout.core.config import settings
 from trendscout.db.base_class import Base
 from trendscout.db.session import get_db
 from trendscout.main import app
 
-# Use the database URL from application settings (which will be PostgreSQL in CI)
-SQLALCHEMY_DATABASE_URL = settings.SQLALCHEMY_DATABASE_URI  # Reverted to original
+SQLALCHEMY_DATABASE_URL = settings.SQLALCHEMY_DATABASE_URI
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
-    connect_args={"client_encoding": "utf8"},  # Try direct psycopg2 kwarg
-    # For PostgreSQL, connect_args={"check_same_thread": False} is not needed and invalid.
-    # poolclass=StaticPool might also be removed or changed for PostgreSQL if necessary,
-    # but default pooling is usually fine for tests.
+    connect_args=(
+        {"client_encoding": "utf8"} if "postgresql" in SQLALCHEMY_DATABASE_URL else {}
+    ),
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Create tables. This will now run against the PostgreSQL test database in CI.
-# Note: Alembic migrations should ideally handle table creation.
-# If Alembic is already creating tables, this line might be redundant or even
-# cause issues if it tries to recreate tables. For now, we keep it to match
-# the original structure, but this is a point of attention.
-# If tests fail due to "table already exists", consider removing this.
-# However, for a clean test DB per session/module, it's often needed if not using migrations for setup.
-Base.metadata.create_all(bind=engine)
+
+@pytest.fixture(scope="session", autouse=True)
+def create_test_tables():
+    """
+    Create all tables once per test session.
+    """
+    Base.metadata.create_all(bind=engine)
+    yield
+    # Optionally, drop tables after session, but usually not needed if DB is ephemeral
+    # Base.metadata.drop_all(bind=engine)
 
 
 def override_get_db():
@@ -43,23 +43,40 @@ def override_get_db():
 app.dependency_overrides[get_db] = override_get_db
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def db() -> Generator[Session, None, None]:
-    """Fixture that returns a SQLAlchemy session for testing."""
+    """
+    Fixture that returns a SQLAlchemy session for testing.
+    Data is cleared from all tables before each test.
+    A transaction is started before the test and rolled back after.
+    """
     connection = engine.connect()
+    # Begin a non-ORM transaction
     transaction = connection.begin()
+    # Bind an ORM session to the connection
     session = TestingSessionLocal(bind=connection)
+
+    # Clear data from all tables before each test
+    # Iterate in reverse to handle foreign key constraints
+    for table in reversed(Base.metadata.sorted_tables):
+        session.execute(table.delete())
+    session.commit()  # Commit the deletions
 
     yield session
 
     session.close()
+    # Rollback the overall transaction
     transaction.rollback()
     connection.close()
 
 
-@pytest.fixture(scope="module")
-def client() -> Generator[TestClient, None, None]:
+@pytest.fixture(scope="function")  # Changed scope to function
+def client(
+    db: Session,
+) -> Generator[TestClient, None, None]:  # Added db: Session dependency to signature
     """Fixture that returns a TestClient for testing API endpoints."""
+    # app.dependency_overrides[get_db] = override_get_db is set globally when conftest is imported.
+    # The db fixture will be available to tests that request it.
     with TestClient(app) as c:
         yield c
 

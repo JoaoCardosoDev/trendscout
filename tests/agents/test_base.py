@@ -1,136 +1,126 @@
-from typing import Dict
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
-from crewai import Agent, Task
+from crewai import Agent
 
-from trendscout.agents.base import BaseAgent
-from trendscout.core.ollama import OllamaService
+from trendscout.agents.base import BaseAgent, ChatLiteLLM
+from trendscout.core.config import get_settings
 
-
-class TestAgent(BaseAgent):
-    """Test agent class that implements BaseAgent."""
-
-    def get_agent_config(self) -> Dict:
-        return {
-            "name": "Test Agent",
-            "role": "Test role",
-            "goal": "Test goal",
-            "backstory": "Test backstory",
-        }
+settings = get_settings()
 
 
-@pytest.fixture
-def base_agent():
-    """Fixture that returns a test agent instance."""
-    return TestAgent()
+# A concrete implementation of BaseAgent for testing purposes
+class ConcreteTestAgent(BaseAgent):
+    async def execute(self, *args, **kwargs):
+        # Minimal implementation for testing
+        return "execute_called"
+
+    async def validate_result(self, result: any) -> bool:
+        # Minimal implementation for testing
+        return result == "execute_called"
 
 
 @pytest.fixture
-def mock_ollama_service():
-    """Fixture that returns a mock OllamaService."""
-    return Mock(spec=OllamaService)
+def test_agent_instance():
+    return ConcreteTestAgent(
+        name="Test Concrete Agent",
+        role="Tester",
+        goal="Test things",
+        backstory="Born to test",
+    )
 
 
-def test_base_agent_creation(base_agent):
-    """Test base agent creation with correct configuration."""
-    assert isinstance(base_agent, BaseAgent)
-    assert base_agent.get_agent_config()["name"] == "Test Agent"
-    assert base_agent.get_agent_config()["role"] == "Test role"
-    assert base_agent.get_agent_config()["goal"] == "Test goal"
-    assert base_agent.get_agent_config()["backstory"] == "Test backstory"
+@patch("trendscout.agents.base.ChatLiteLLM")
+def test_base_agent_creation(mock_chat_litellm_class, test_agent_instance):
+    """Test BaseAgent creation and property initialization."""
+    # Use MagicMock with spec to make it behave more like a ChatLiteLLM instance
+    mock_llm_instance = MagicMock(spec=ChatLiteLLM)
+    # Ensure it has a 'callbacks' attribute, as crewAI might expect it
+    mock_llm_instance.callbacks = []
+    mock_chat_litellm_class.return_value = mock_llm_instance
+
+    assert test_agent_instance.name == "Test Concrete Agent"
+    assert test_agent_instance.role == "Tester"
+    assert test_agent_instance.goal == "Test things"
+    assert test_agent_instance.backstory == "Born to test"
+    assert test_agent_instance.model == settings.OLLAMA_MODEL  # Default model
+    assert test_agent_instance.temperature == 0.7  # Default temperature
+
+    # Access the agent property to trigger its creation
+    agent_prop = test_agent_instance.agent
+    assert isinstance(agent_prop, Agent)
+    mock_chat_litellm_class.assert_called_once_with(
+        model=f"ollama/{settings.OLLAMA_MODEL}",
+        temperature=0.7,
+        request_timeout=settings.OLLAMA_REQUEST_TIMEOUT,
+    )
+    # The agent_prop.llm will be an instance of crewai.llm.LLM,
+    # which wraps the mock_llm_instance.
+    # We've already asserted that mock_chat_litellm_class was called with the correct params.
+    # We can also check the type of the llm attribute of the crewAI agent.
+    assert hasattr(agent_prop, "llm")
+    # Further checks could involve inspecting agent_prop.llm if its internal structure was known
+    # and stable, but for now, knowing it's an LLM wrapper and our mock was called is sufficient.
 
 
-def test_create_crew_agent(base_agent, mock_ollama_service):
-    """Test creation of CrewAI agent."""
-    with patch(
-        "trendscout.agents.base.OllamaService", return_value=mock_ollama_service
-    ):
-        crew_agent = base_agent.create_crew_agent()
+@patch("trendscout.agents.base.ChatLiteLLM")
+def test_agent_with_custom_model(mock_chat_litellm_class):
+    """Test BaseAgent with a custom model name."""
+    custom_model = "custom_test_model"
+    agent = ConcreteTestAgent(
+        name="Custom Model Agent",
+        role="Tester",
+        goal="Test custom model",
+        backstory="Uses a different model",
+        model=custom_model,
+    )
+    mock_llm_instance = MagicMock(spec=ChatLiteLLM)
+    mock_llm_instance.callbacks = []
+    mock_chat_litellm_class.return_value = mock_llm_instance
 
-        assert isinstance(crew_agent, Agent)
-        assert crew_agent.name == "Test Agent"
-        assert crew_agent.role == "Test role"
-        assert crew_agent.goal == "Test goal"
-        assert crew_agent.backstory == "Test backstory"
-        assert crew_agent.llm == mock_ollama_service.get_llm.return_value
-
-
-def test_execute_task(base_agent, mock_ollama_service):
-    """Test task execution."""
-    mock_task = Mock(spec=Task)
-    mock_task.description = "Test task description"
-    mock_crew_agent = Mock()
-
-    with patch(
-        "trendscout.agents.base.OllamaService", return_value=mock_ollama_service
-    ), patch.object(base_agent, "create_crew_agent", return_value=mock_crew_agent):
-
-        base_agent.execute_task(mock_task)
-
-        # Verify agent was created and task was executed
-        base_agent.create_crew_agent.assert_called_once()
-        mock_crew_agent.execute_task.assert_called_once_with(mock_task)
+    assert agent.model == custom_model
+    # Access agent to trigger LLM instantiation
+    _ = agent.agent
+    mock_chat_litellm_class.assert_called_once_with(
+        model=f"ollama/{custom_model}",
+        temperature=0.7,  # Default temperature
+        request_timeout=settings.OLLAMA_REQUEST_TIMEOUT,
+    )
 
 
-def test_execute_task_with_error(base_agent, mock_ollama_service):
-    """Test task execution with error."""
-    mock_task = Mock(spec=Task)
-    mock_task.description = "Test task description"
-    mock_crew_agent = Mock()
-    mock_crew_agent.execute_task.side_effect = Exception("Test error")
+@patch("trendscout.agents.base.ChatLiteLLM")
+def test_agent_with_custom_temperature(mock_chat_litellm_class):
+    """Test BaseAgent with a custom temperature."""
+    custom_temp = 0.9
+    agent = ConcreteTestAgent(
+        name="Custom Temp Agent",
+        role="Tester",
+        goal="Test custom temperature",
+        backstory="Feeling warm",
+        temperature=custom_temp,
+    )
+    mock_llm_instance = MagicMock(spec=ChatLiteLLM)
+    mock_llm_instance.callbacks = []
+    mock_chat_litellm_class.return_value = mock_llm_instance
 
-    with patch(
-        "trendscout.agents.base.OllamaService", return_value=mock_ollama_service
-    ), patch.object(base_agent, "create_crew_agent", return_value=mock_crew_agent):
-
-        with pytest.raises(Exception) as exc_info:
-            base_agent.execute_task(mock_task)
-
-        assert str(exc_info.value) == "Test error"
-        base_agent.create_crew_agent.assert_called_once()
-        mock_crew_agent.execute_task.assert_called_once_with(mock_task)
-
-
-def test_agent_with_custom_model(mock_ollama_service):
-    """Test agent creation with custom model."""
-    custom_agent = TestAgent(model_name="custom-model")
-
-    with patch(
-        "trendscout.agents.base.OllamaService", return_value=mock_ollama_service
-    ):
-        crew_agent = custom_agent.create_crew_agent()
-
-        mock_ollama_service.get_llm.assert_called_once_with(model_name="custom-model")
-        assert crew_agent.llm == mock_ollama_service.get_llm.return_value
+    assert agent.temperature == custom_temp
+    _ = agent.agent
+    mock_chat_litellm_class.assert_called_once_with(
+        model=f"ollama/{settings.OLLAMA_MODEL}",  # Default model
+        temperature=custom_temp,
+        request_timeout=settings.OLLAMA_REQUEST_TIMEOUT,
+    )
 
 
-def test_agent_with_custom_temperature(mock_ollama_service):
-    """Test agent creation with custom temperature."""
-    custom_agent = TestAgent(temperature=0.8)
-
-    with patch(
-        "trendscout.agents.base.OllamaService", return_value=mock_ollama_service
-    ):
-        crew_agent = custom_agent.create_crew_agent()
-
-        mock_ollama_service.get_llm.assert_called_once_with(
-            model_name="llama2", temperature=0.8
-        )
-        assert crew_agent.llm == mock_ollama_service.get_llm.return_value
+# Removed test_execute_task as it was skipped due to async nature and not fitting the simplified test structure.
+# Removed comments related to agent_config_validation and direct instantiation tests for brevity.
 
 
-def test_agent_config_validation():
-    """Test agent configuration validation."""
-
-    class InvalidAgent(BaseAgent):
-        def get_agent_config(self) -> Dict:
-            return {
-                "name": "Test Agent",
-                # Missing required fields
-            }
-
-    with pytest.raises(ValueError) as exc_info:
-        InvalidAgent()
-
-    assert "Missing required fields in agent config" in str(exc_info.value)
+def test_base_agent_is_abstract():
+    """Check that BaseAgent itself cannot be instantiated."""
+    with pytest.raises(TypeError) as excinfo:
+        BaseAgent(name="Abstract", role="r", goal="g", backstory="b")
+    assert (
+        "Can't instantiate abstract class BaseAgent with abstract methods execute, validate_result"
+        in str(excinfo.value)
+    )

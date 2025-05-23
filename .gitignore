@@ -39,6 +39,7 @@ ENV/
 !.vscode/extensions.json
 *.code-workspace
 .history/
+.devcontainer
 
 # Testing
 .pytest_cache/
