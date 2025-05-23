@@ -11,10 +11,11 @@ from trendscout.db.session import get_db
 from trendscout.main import app
 
 # Use the database URL from application settings (which will be PostgreSQL in CI)
-SQLALCHEMY_DATABASE_URL = settings.SQLALCHEMY_DATABASE_URI
+SQLALCHEMY_DATABASE_URL = settings.SQLALCHEMY_DATABASE_URI  # Reverted to original
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"client_encoding": "utf8"},  # Try direct psycopg2 kwarg
     # For PostgreSQL, connect_args={"check_same_thread": False} is not needed and invalid.
     # poolclass=StaticPool might also be removed or changed for PostgreSQL if necessary,
     # but default pooling is usually fine for tests.
