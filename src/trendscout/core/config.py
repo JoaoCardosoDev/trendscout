@@ -1,7 +1,10 @@
-from typing import Optional, Dict, ClassVar
-from pydantic_settings import BaseSettings
+import os  # Add os import
 from functools import lru_cache
+from typing import ClassVar, Dict, Optional
+
 from pydantic import field_validator
+from pydantic_settings import BaseSettings
+
 from .logging import logger
 
 
@@ -33,7 +36,7 @@ class Settings(BaseSettings):
 
     # Superuser configuration
     SUPERUSER_EMAIL: str = "admin@example.com"
-    SUPERUSER_PASSWORD: str = "admin"  # This should be changed in production
+    SUPERUSER_PASSWORD: str = "admin"
 
     # Authentication
     SECRET_KEY: str
@@ -54,7 +57,7 @@ class Settings(BaseSettings):
     # Ollama
     OLLAMA_BASE_URL: str
     OLLAMA_MODEL: str = "llama2"  # Default model
-    OLLAMA_TIMEOUT: int = 600  # 10 minutes timeout (increased from 300)
+    OLLAMA_TIMEOUT: int = 600  # 10 minutes timeout
     OLLAMA_REQUEST_TIMEOUT: int = 300  # 1 minute timeout for requests
 
     # CORS
@@ -95,7 +98,7 @@ class Settings(BaseSettings):
 
     model_config = {
         "case_sensitive": True,
-        "env_file": ".env",
+        "env_file": None if os.getenv("CI") else ".env",  # Conditionally load .env
         "validate_default_values": True,
     }
 
