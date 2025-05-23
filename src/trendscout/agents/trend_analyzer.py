@@ -1,12 +1,14 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional  # Added Optional
+
 from crewai import Task  # Import Task
+
 from .base import BaseAgent
 
 
 class TrendAnalyzerAgent(BaseAgent):
     """Agent responsible for analyzing and identifying trending topics."""
 
-    def __init__(self):
+    def __init__(self, model: Optional[str] = None):  # Added model parameter
         super().__init__(
             name="Trend Analyzer",
             role="Trend Analysis Expert",
@@ -15,6 +17,7 @@ class TrendAnalyzerAgent(BaseAgent):
             "specializing in social media content analysis and discovering "
             "emerging trends across platforms.",
             temperature=0.7,  # Balanced between creativity and accuracy
+            model=model,  # Pass model to super
         )
 
     def run(self, query: str) -> Dict[str, Any]:
