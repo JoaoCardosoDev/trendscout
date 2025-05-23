@@ -4,23 +4,30 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
 
+from trendscout.core.config import settings  # Import application settings
 from trendscout.db.base_class import Base
 from trendscout.db.session import get_db
 from trendscout.main import app
 
-# Use in-memory SQLite for tests
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+# Use the database URL from application settings (which will be PostgreSQL in CI)
+SQLALCHEMY_DATABASE_URL = settings.SQLALCHEMY_DATABASE_URI
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
+    SQLALCHEMY_DATABASE_URL
+    # For PostgreSQL, connect_args={"check_same_thread": False} is not needed and invalid.
+    # poolclass=StaticPool might also be removed or changed for PostgreSQL if necessary,
+    # but default pooling is usually fine for tests.
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Create tables for each test
+# Create tables. This will now run against the PostgreSQL test database in CI.
+# Note: Alembic migrations should ideally handle table creation.
+# If Alembic is already creating tables, this line might be redundant or even
+# cause issues if it tries to recreate tables. For now, we keep it to match
+# the original structure, but this is a point of attention.
+# If tests fail due to "table already exists", consider removing this.
+# However, for a clean test DB per session/module, it's often needed if not using migrations for setup.
 Base.metadata.create_all(bind=engine)
 
 

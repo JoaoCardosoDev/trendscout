@@ -63,9 +63,6 @@ jobs:
           --health-retries 5
       mock-ollama:
         image: nginx:alpine # Using nginx as a simple, reliable HTTP server
-        # nginx by default listens on port 80.
-        # The service will be available at mock-ollama:80
-        # Health check will target port 80 inside the container.
         options: >-
           --health-cmd "curl -f http://localhost:80/ || exit 1"
           --health-interval 10s
