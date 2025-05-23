@@ -61,6 +61,25 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      mock-ollama:
+        image: mendhak/http-https-echo
+        env:
+          HTTP_PORT: 11434 # Configure echo server to listen on port 11434
+        # The service will be available at mock-ollama:11434
+        # No host port mapping needed if only accessed by other services in the job network.
+        # However, to be explicit and ensure it's reachable as 'mock-ollama:11434'
+        # from the main job container, we can expose it.
+        # The tests use OLLAMA_API_BASE_URL: http://mock-ollama:11434/api
+        # So the service name 'mock-ollama' and port '11434' are key.
+        # Docker service networking handles this. Explicit port exposure isn't strictly
+        # necessary for service-to-service communication within the job,
+        # but good for clarity and if a health check needs to hit a mapped port.
+        # For the health check, localhost inside the health check refers to the service container itself.
+        options: >-
+          --health-cmd "curl --fail http://localhost:11434/ || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
