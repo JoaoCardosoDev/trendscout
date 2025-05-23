@@ -1,9 +1,16 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool
+
+# Local application imports
+from trendscout.core.config import settings
+from trendscout.db.base_class import Base
+from trendscout.models.task import AgentTask  # noqa: F401
+from trendscout.models.user import User  # noqa: F401
+
+# Import other models here if you have them, e.g.:
+# from trendscout.models.another_model import AnotherModel # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -16,15 +23,7 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from trendscout.db.base_class import Base
-from trendscout.models.user import User
-from trendscout.models.task import AgentTask
-# Import other models here if you have them, e.g.:
-# from trendscout.models.another_model import AnotherModel
-
-from trendscout.core.config import settings # For database URL
-
-# target_metadata for autogenerate support
+# Models are imported above to be available for Base.metadata
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -48,7 +47,9 @@ def run_migrations_offline() -> None:
     # Use the database URL from application settings
     db_url = settings.SQLALCHEMY_DATABASE_URI
     if not db_url:
-        raise ValueError("Database URL not found in settings. Ensure SQLALCHEMY_DATABASE_URI is configured.")
+        raise ValueError(
+            "Database URL not found in settings. Ensure SQLALCHEMY_DATABASE_URI is configured."
+        )
     context.configure(
         url=db_url,
         target_metadata=target_metadata,
@@ -70,7 +71,9 @@ def run_migrations_online() -> None:
     # Use the database URL from application settings
     db_url = settings.SQLALCHEMY_DATABASE_URI
     if not db_url:
-        raise ValueError("Database URL not found in settings. Ensure SQLALCHEMY_DATABASE_URI is configured.")
+        raise ValueError(
+            "Database URL not found in settings. Ensure SQLALCHEMY_DATABASE_URI is configured."
+        )
 
     # Create a configuration dictionary for engine_from_config,
     # ensuring our settings-derived URL is used.
@@ -84,9 +87,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
