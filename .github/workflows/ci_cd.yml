@@ -76,10 +76,11 @@ jobs:
         # but good for clarity and if a health check needs to hit a mapped port.
         # For the health check, localhost inside the health check refers to the service container itself.
         options: >-
-          --health-cmd "curl --fail http://localhost:11434/ || exit 1"
+          --health-cmd "curl -fSs http://localhost:11434/ping || exit 1"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          --health-start-period 10s
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -93,7 +94,7 @@ jobs:
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-      
+
       - name: Install dependencies
         run: poetry install --no-interaction --no-ansi
 
@@ -122,7 +123,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          token: ${{ secrets.CODECOV_TOKEN }} 
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           files: ./coverage.xml
 
